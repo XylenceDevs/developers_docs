@@ -44,11 +44,17 @@ flowchart TB
         FileNormalizer[FileNormalizer]
         DBCRUD[DBCRUD]
         Cache[Cache]
+        LinkedinScrapper[LinkedinScrapper]
+        NewsAnalyzer[NewsAnalyzer]
+        TwitterAnalyzer[TwitterAnalyzer]
 
         %% Enlaces invisibles para forzar horizontal
         InsightsExtractor --- FileNormalizer
         FileNormalizer --- DBCRUD
         DBCRUD --- Cache
+        Cache --- LinkedinScrapper
+        LinkedinScrapper --- NewsAnalyzer
+        NewsAnalyzer --- TwitterAnalyzer
     end
 
     %% ===== Data / Services =====
@@ -91,6 +97,12 @@ flowchart TB
 - DBCRUD: expone operaciones CRUD del dominio vía HTTP y delegan el acceso físico a DB Access.
 
 - Cache: provee caché de respuestas/datos intermedios para reducir latencia y costo (invalida por claves/reglas simples).
+
+- Linkedin Scrapper: Obtiene información sobre los perfiles de los founders
+
+- Google News Scrapper: Obtiene información sobre noticias relacionadas a una startup o founder
+
+- Twitter Consultant: Consulta APIs de twitter para buscar información de valor **(por validar prioridad)**
 
 ### Data / Services Layer
 
