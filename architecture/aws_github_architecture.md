@@ -6,6 +6,7 @@
 
 ## High-Level Diagram
 
+
 ```mermaid
 flowchart LR
   %% CI and CD
@@ -30,6 +31,7 @@ flowchart LR
   %% Frontend Delivery
   subgraph Frontend
     cf[CloudFront]
+    alb[ALB]
     acm[ACM Certificates]
     s3fe[S3 Frontend Bucket]
   end
@@ -39,7 +41,6 @@ flowchart LR
 
   %% Core App
   subgraph VPC
-    alb[ALB]
     ecs[ECS Fargate API]
     rds[Aurora PostgreSQL Serverless]
   end
