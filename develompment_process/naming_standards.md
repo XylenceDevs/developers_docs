@@ -9,7 +9,6 @@
 * **kebab‑case**, lowercase, ASCII. No spaces/accents; avoid `_` unless a service forces it.
 * **Stable slugs** for environments: `dev`, `staging`, `prod`.
 * Prefer **consistency over creativity**; keep names short and scoped to the thing they identify.
-
 ---
 
 ## 2) Environments (everywhere)
@@ -37,7 +36,7 @@ Use the slug in names, tags, and variables. Omit the slug in **public prod DNS**
 ### 3.2 Branches
 
 * Permanent: `main`, `staging`, `dev`
-* Work branches: `feat/<scope>-<summary>`, `fix/<scope>-<summary>`, `chore/...`, `refactor/...`
+* Work branches: `feat/<service>-<ISSUE>-<summary>`, `fix/<scope>-<summary>`, `chore/...`, `refactor/...`
 * Hotfix on prod: `hotfix/<summary>`
 
 ### 3.3 Release tags (SemVer)
