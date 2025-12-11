@@ -33,9 +33,11 @@ The platform consists of four main application modules, each serving a distinct 
 | **Signal** | Matchmaking engine: connects founders with relevant investors and vice versa | Both |
 
 ### Layered Architecture
-
+ 
 The platform follows an **n-layer architecture** with HTTP communication between layers. Each layer has clear responsibilities and dependencies flow strictly downward.
 
+
+## El grafico deberia tener una distribucion horizontal
 ```mermaid
 flowchart TB
     subgraph Presentation["Presentation Layer"]
@@ -316,71 +318,55 @@ Document Upload → Normalize → Extract → Enrich → Persist
 
 ## 4. Data Architecture
 
-> **Note**: This schema is provisional and will evolve as we validate with real usage patterns.
-
-### 4.1 Core Entities
-
-```mermaid
-erDiagram
-    TENANTS ||--o{ STARTUPS : has
-    TENANTS ||--o{ USERS : has
-    STARTUPS ||--o{ FOUNDERS : has
-    STARTUPS ||--o{ DOCUMENTS : has
-    STARTUPS ||--o{ FACTS : has
-    STARTUPS ||--o{ INSIGHTS : has
-    
-    TENANTS {
-        uuid id PK
-        string name
-        jsonb settings
-    }
-    
-    STARTUPS {
-        uuid id PK
-        uuid tenant_id FK
-        string name
-        string status
-        timestamp created_at
-    }
-    
-    FOUNDERS {
-        uuid id PK
-        uuid startup_id FK
-        string name
-        string role
-        jsonb enrichment_data
-    }
-    
-    DOCUMENTS {
-        uuid id PK
-        uuid startup_id FK
-        string s3_key
-        string status
-        text extracted_text
-    }
-    
-    FACTS {
-        uuid id PK
-        uuid startup_id FK
-        string fact_type
-        jsonb content
-        float confidence
-    }
-    
-    INSIGHTS {
-        uuid id PK
-        uuid startup_id FK
-        string insight_type
-        jsonb content
-    }
+```
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║   ⚠️  PROVISIONAL SCHEMA — PENDING DATA TEAM REVIEW                          ║
+║                                                                              ║
+║   This section outlines the general data structure direction.                ║
+║   Final entity definitions, relationships, and field specifications         ║
+║   will be determined in collaboration with the Data team.                    ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 ```
 
-### 4.2 Multi-Tenant Isolation
+### 4.1 Confirmed: Pitch Deck Extraction Schema
 
-All tables include `tenant_id` and enforce Row-Level Security:
+The following schema is **defined and validated** for structured data extraction from pitch decks. This is the output of the Insights Extractor service:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `problem_statement` | string | Pain point the startup solves |
+| `purpose` | string | Mission/objective declaration |
+| `solution` | string | Product/service value proposition |
+| `business_model` | string | Revenue mechanism (who pays, how) |
+| `go_to_market` | string | Customer acquisition strategy |
+| `competitive_advantage` | string | Key differentiators |
+| `traction` | string | Operational/commercial evidence |
+| `financials_ask` | float \| string | Funding amount sought |
+| `tam` | float | Total Addressable Market size |
+| `tam_units` | string | TAM unit (USD, MXN, users, etc.) |
+| `founders` | string | Founding team info and roles |
+
+### 4.2 Indicative Entities (To Be Defined)
+
+Core entities expected in the system:
+
+```
+TENANTS ──┬──▶ STARTUPS ──┬──▶ FOUNDERS
+          │               ├──▶ DOCUMENTS
+          │               └──▶ EXTRACTED_DATA (pitch schema above)
+          │
+          └──▶ USERS
+```
+
+Detailed field definitions, relationships, and additional entities will be specified by the Data team.
+
+### 4.3 Multi-Tenant Isolation
+
+All tables will include `tenant_id` with Row-Level Security (RLS) enforcement:
 
 ```sql
--- Every query is automatically filtered by tenant
 ALTER TABLE startups ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY tenant_isolation ON startups
@@ -389,7 +375,9 @@ CREATE POLICY tenant_isolation ON startups
 
 The Data Service sets the tenant context on every request based on the authenticated user's JWT claims.
 
-### 4.3 Data Access Pattern
+### 4.4 Data Access Pattern
+
+**Critical constraint**: Only the Data Service reads/writes to Aurora.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -611,7 +599,7 @@ xylence/
 
 | Layer | Technology |
 |-------|------------|
-| **Frontend** | React 18, TypeScript, TailwindCSS |
+| **Frontend** | React 19, TypeScript, TailwindCSS |
 | **Application** | NestJS 10, TypeScript |
 | **Intelligence** | Python 3.11, FastAPI, Pydantic |
 | **Database** | PostgreSQL 15 (Aurora Serverless v2) |
@@ -722,8 +710,7 @@ Response:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | 2024-12-11 | Lucas | Initial architecture document |
-| 2.0 | 2024-12-11 | Lucas | Simplified structure, removed EventBridge, updated tech stack |
+| 1.0 | 2025-12-11 | Lucas | Initial architecture document |
 
 ---
 
