@@ -7,4 +7,5 @@
 ## Arquitectura
 - [Arquitectura de alto nivel](/architecture/high_level_arch.md)
 - [GH + AWS Architecture](/architecture/aws_github_architecture.md)
+- [System Architecture](/architecture/system_architecture.md)
 
