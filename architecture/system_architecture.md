@@ -157,6 +157,8 @@ Founder uploads pitch deck:
 
 ### 2.3 Intelligence Layer
 
+**Note**: We could use lambda for some modules
+
 **Purpose**: Domain logic, AI/ML capabilities, data access abstraction.
 
 | Service | Technology | Responsibility |
@@ -481,18 +483,6 @@ flowchart TB
 | Enrichment Service | FastAPI | 0.25 | 512 MB | 1 |
 | Data Service | FastAPI | 0.5 | 1 GB | 2 |
 
-### 5.3 Current State
-
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Pulse Frontend | ✅ Deployed | React in S3 + CloudFront |
-| Pulse Service | ✅ Deployed | NestJS in ECS Fargate |
-| Insights Extractor | ✅ Deployed | FastAPI in ECS Fargate |
-| File Normalizer | ✅ Deployed | FastAPI in ECS Fargate |
-| Data Service | ✅ Deployed | FastAPI in ECS Fargate |
-| Aurora PostgreSQL | ✅ Deployed | Serverless v2 |
-| Cognito | 🔄 In Progress | User pools configuration |
-
 ---
 
 ## 6. Security & Multi-tenancy
@@ -704,13 +694,95 @@ Response:
 }
 ```
 
----
 
-## Document History
+## Diagram
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 1.0 | 2025-12-11 | Lucas | Initial architecture document |
+```mermaid
+
+flowchart TB
+    subgraph Users["Users"]
+        Founder[Founder]
+        VC[VC Analyst]
+    end
+
+    subgraph AWS["AWS Cloud"]
+        
+        subgraph Edge["Edge Layer"]
+            CF[CloudFront<br/>CDN + HTTPS]
+        end
+
+        subgraph Auth["Authentication"]
+            Cognito[Amazon Cognito<br/>JWT Issuer]
+        end
+
+        subgraph Frontend["Frontend Hosting"]
+            S3_FE[(S3<br/>React Apps)]
+        end
+
+        subgraph Compute["Compute Layer"]
+            ALB[Application Load Balancer]
+            
+            subgraph ECS["ECS Fargate Cluster"]
+                subgraph AppLayer["Application Layer (NestJS)"]
+                    Pulse[Pulse]
+                    Echo[Echo]
+                    Sound[Sound]
+                    Signal[Signal]
+                end
+            end
+
+            subgraph IntLayer["Intelligence Layer (FastAPI)"]
+                subgraph Fargate["Fargate (long-running)"]
+                    DataSvc[Data Service]
+                end
+                
+                subgraph LambdaOrFargate["Lambda or Fargate (per use case)"]
+                    FileNorm[File Normalizer]
+                    Insights[Insights Extractor]
+                    Enrichment[Enrichment Service]
+                end
+            end
+        end
+
+        subgraph Storage["Storage Layer"]
+            S3_Docs[(S3<br/>Documents)]
+            Aurora[(Aurora PostgreSQL<br/>Serverless v2)]
+        end
+
+        subgraph AI["AI Services"]
+            Bedrock[Amazon Bedrock<br/>Claude Sonnet]
+        end
+    end
+
+    subgraph External["External APIs"]
+        Perplexity[Perplexity API]
+    end
+
+    %% User flows
+    Founder --> CF
+    VC --> CF
+    Founder --> Cognito
+    VC --> Cognito
+
+    %% Edge routing
+    CF --> S3_FE
+    CF --> ALB
+    Cognito -.->|JWT Validation| ALB
+
+    %% App Layer
+    ALB --> AppLayer
+    AppLayer -->|HTTP| IntLayer
+
+    %% Intelligence Layer connections
+    FileNorm --> Bedrock
+    Insights --> Bedrock
+    Enrichment --> Perplexity
+    DataSvc --> Aurora
+    FileNorm --> S3_Docs
+    
+    %% Only Data Service writes to DB
+    AppLayer -->|HTTP| DataSvc
+```
 
 ---
 
